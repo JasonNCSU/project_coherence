@@ -83,8 +83,8 @@ public:
 
    //******///
    //add other functions to handle bus transactions///
-   virtual void prRd();
-   virtual void prWr();
+   virtual void prRd() = 0;
+   virtual void prWr() = 0;
    virtual void flush() {return;};
    virtual void busRd() {return;};
    virtual void busUpgr() {return;};
