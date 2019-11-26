@@ -10,8 +10,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-	
-	ifstream fin;
+
 	FILE * pFile;
 
 	if(argv[1] == NULL){
@@ -78,6 +77,34 @@ int main(int argc, char *argv[])
 	//**read trace file,line by line,each(processor#,operation,address)**//
 	//*****propagate each request down through memory hierarchy**********//
 	//*****by calling cachesArray[processor#]->Access(...)***************//
+    ifstream fin(fname);
+	string data_segment;
+	int processor = 0;
+	uchar rw = ' ';
+	ulong addr = 0;
+    while (getline(fin, data_segment)) {
+        processor = data_segment.at(0);
+        rw = data_segment.at(2);
+        addr = strtoul(data_segment.substr(4).c_str(), nullptr, 16);
+
+        processorArray[processor].Access(addr, rw);
+
+        switch (protocol) {
+            case 0:
+                //COHERENCE PROTOCOL: MSI
+                break;
+            case 1:
+                //COHERENCE PROTOCOL: MESI
+                break;
+            case 2:
+                //COHERENCE PROTOCOL: Dragon
+                break;
+            default:
+                //unreachable, earlier if default was reached we exited program
+                exit(0);
+        }
+    }
+
 	///******************************************************************//
 	fclose(pFile);
 

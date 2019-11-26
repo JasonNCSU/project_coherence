@@ -15,9 +15,6 @@ Cache::Cache(int s,int a,int b )
    ulong i, j;
    reads = readMisses = writes = 0; 
    writeMisses = writeBacks = currentCycle = 0;
-   numCacheTransfers = numMemoryTransactions = 0;
-   numInterventions = numInvalidaitons = 0;
-   numFlushes = numBusRdX = 0;
 
    size       = (ulong)(s);
    lineSize   = (ulong)(b);
@@ -29,6 +26,9 @@ Cache::Cache(int s,int a,int b )
   
    //*******************//
    //initialize your counters here//
+    numCacheTransfers = numMemoryTransactions = 0;
+    numInterventions = numInvalidaitons = 0;
+    numFlushes = numBusRdX = 0;
    //*******************//
  
    tagMask =0;
