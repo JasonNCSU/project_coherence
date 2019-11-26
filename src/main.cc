@@ -112,6 +112,7 @@ int main(int argc, char *argv[])
                 if (cachePtr->protState == M) {
                     if (rw == 'w') {
                         cachePtr->protState = M;
+
                     } else {
                         cachePtr->protState = M;
                     }
@@ -124,11 +125,18 @@ int main(int argc, char *argv[])
                     }
                 } else {
                     if (rw == 'w') {
-                        //cachePtr->busRdX();
                         cachePtr->protState = M;
+                        //cachePtr->busRdX();
                     } else {
-                        //cachePtr->busRd();
                         cachePtr->protState = S;
+                        for (int i = 0; i < num_processors; i++) {
+                            if (i != processor) {
+                                if (processorArray[i]->findLine(addr)->getFlags() == M) {
+                                    processorArray[i]->findLine(addr)->setFlags(S);
+                                    processorArray[i]->flush();
+                                }
+                            }
+                        }
                     }
                 }
                 break;

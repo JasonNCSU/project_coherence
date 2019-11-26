@@ -198,7 +198,7 @@ void Msi::prWr(ulong addr) {
     Access(addr, 'w');
 }
 void Msi::flush() {
-
+    numFlushes++;
 }
 void Msi::busRd(ulong addr) {
 
@@ -231,10 +231,10 @@ void Mesi::busRdX(ulong addr) {
 
 //Dragon Functions
 void Dragon::prRd(ulong addr) {
-    Access(addr, 'r');
+
 }
 void Dragon::prWr(ulong addr) {
-    Access(addr, 'w');
+
 }
 void Dragon::flush() {
 
