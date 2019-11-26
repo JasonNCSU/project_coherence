@@ -77,6 +77,11 @@ int main(int argc, char *argv[])
 
 	//********************************//
 	//print out all caches' statistics //
+	int print_stats = 0;
+	for (print_stats; print_stats < num_processors; print_stats++) {
+	    printStats(print_stats);
+	}
 	//********************************//
-	
+
+	return 0;
 }
