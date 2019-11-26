@@ -71,7 +71,7 @@ public:
    
    void writeBack(ulong)   {writeBacks++;}
    void Access(ulong,uchar);
-   void printStats(int processor_num);
+   void printStats(int processor_num, int protocol);
    void updateLRU(cacheLine *);
 
    //******///

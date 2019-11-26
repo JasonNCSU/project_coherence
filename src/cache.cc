@@ -156,9 +156,16 @@ cacheLine *Cache::fillLine(ulong addr)
    return victim;
 }
 
-void Cache::printStats(int processor_num)
+void Cache::printStats(int processor_num, int protocol)
 {
     double miss_rate = 0;
+    if (protocol == 0) {
+        numMemoryTransactions = readMisses + writeBacks + numBusRdX;
+    } else if (protocol == 1) {
+        numMemoryTransactions = readMisses + writeBacks + numBusRdX - numCacheTransfers;
+    } else {
+        numMemoryTransactions = readMisses + writeMisses + writeBacks;
+    }
 
     if (reads != 0 || writes != 0) {
         miss_rate = (double) (readMisses + writeMisses) / (double) (reads + writes);

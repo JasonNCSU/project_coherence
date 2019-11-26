@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 	//print out all caches' statistics //
 	int print_stats = 0;
 	for (print_stats = 0; print_stats < num_processors; print_stats++) {
-	    processorArray[print_stats].printStats(print_stats);
+	    processorArray[print_stats].printStats(print_stats, protocol);
 	}
 	//********************************//
 
