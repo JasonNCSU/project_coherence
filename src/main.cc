@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
         addr = strtoul(data_segment.substr(4).c_str(), NULL, 16);
 
         cachePtr = processorArray[processor];
-        cachePtr->Access(addr, rw, protocol);
+        cachePtr->Access(addr, rw);
 
         switch (protocol) {
             case 0:
@@ -117,17 +117,17 @@ int main(int argc, char *argv[])
                     }
                 } else if (cachePtr->protState == S) {
                     if (rw == 'w') {
-                        cachePtr->busUpgr();
+                        //cachePtr->busUpgr();
                         cachePtr->protState = M;
                     } else {
                         cachePtr->protState = S;
                     }
                 } else {
                     if (rw == 'w') {
-                        cachePtr->busRdX();
+                        //cachePtr->busRdX();
                         cachePtr->protState = M;
                     } else {
-                        cachePtr->busRd();
+                        //cachePtr->busRd();
                         cachePtr->protState = S;
                     }
                 }
@@ -148,21 +148,21 @@ int main(int argc, char *argv[])
                     }
                 } else if (cachePtr->protState == S) {
                     if (rw == 'w') {
-                        cachePtr->busRdX();
+                        //cachePtr->busRdX();
                         cachePtr->protState = M;
                     } else {
                         cachePtr->protState = S;
                     }
                 } else {
                     if (rw == 'w') {
-                        cachePtr->busRdX();
+                        //cachePtr->busRdX();
                         cachePtr->protState = M;
                     } else {
                         if (cachePtr->shared) {
-                            cachePtr->busRd();
+                            //cachePtr->busRd();
                             cachePtr->protState = S;
                         } else {
-                            cachePtr->busRd();
+                            //cachePtr->busRd();
                             cachePtr->protState = E;
                         }
                     }
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
                 } else if (cachePtr->protState == O) {
                     if (rw == 'w') {
                         if (cachePtr->shared) {
-                            cachePtr->busUpdate();
+                            //cachePtr->busUpdate();
                             cachePtr->protState = O;
                         } else {
                             cachePtr->protState = M;

@@ -77,19 +77,19 @@ public:
    ulong getWB(){return writeBacks;}
    
    void writeBack(ulong)   {writeBacks++;}
-   void Access(ulong,uchar,int);
+   void Access(ulong,uchar);
    void printStats(int processor_num, int protocol);
    void updateLRU(cacheLine *);
 
    //******///
    //add other functions to handle bus transactions///
-   virtual void prRd() = 0;
-   virtual void prWr() = 0;
+   virtual void prRd(ulong) = 0;
+   virtual void prWr(ulong) = 0;
    virtual void flush() {return;};
-   virtual void busRd() {return;};
-   virtual void busUpgr() {return;};
-   virtual void busUpdate() {return;};
-   virtual void busRdX() {return;};
+   virtual void busRd(ulong) {return;};
+   virtual void busUpgr(ulong) {return;};
+   virtual void busUpdate(ulong) {return;};
+   virtual void busRdX(ulong) {return;};
    //******///
 
 };
@@ -101,12 +101,12 @@ public:
     ~Msi() {};
 
     //state machine calls
-    void prRd();
-    void prWr();
+    void prRd(ulong);
+    void prWr(ulong);
     void flush();
-    void busRd();
-    void busUpgr();
-    void busRdX();
+    void busRd(ulong);
+    void busUpgr(ulong);
+    void busRdX(ulong);
     //state machine calls
 };
 
@@ -117,11 +117,11 @@ public:
     ~Mesi() {};
 
     //state machine calls
-    void prRd();
-    void prWr();
+    void prRd(ulong);
+    void prWr(ulong);
     void flush();
-    void busRd();
-    void busRdX();
+    void busRd(ulong);
+    void busRdX(ulong);
     //state machine calls
 };
 
@@ -132,11 +132,11 @@ public:
     ~Dragon() {};
 
     //state machine calls
-    void prRd();
-    void prWr();
+    void prRd(ulong);
+    void prWr(ulong);
     void flush();
-    void busRd();
-    void busUpdate();
+    void busRd(ulong);
+    void busUpdate(ulong);
     //state machine calls
 };
 

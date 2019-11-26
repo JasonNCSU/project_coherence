@@ -56,7 +56,7 @@ Cache::Cache(int s,int a,int b )
 /**you might add other parameters to Access()
 since this function is an entry point 
 to the memory hierarchy (i.e. caches)**/
-void Cache::Access(ulong addr,uchar op, int protocol)
+void Cache::Access(ulong addr,uchar op)
 {
 	currentCycle++;/*per cache global counter to maintain LRU order 
 			among cache ways, updated on every cache access*/
@@ -191,58 +191,58 @@ void Cache::printStats(int processor_num, int protocol)
 }
 
 //MSI Functions
-void Msi::prRd() {
-
+void Msi::prRd(ulong addr) {
+    Access(addr, 'r');
 }
-void Msi::prWr() {
-
+void Msi::prWr(ulong addr) {
+    Access(addr, 'w');
 }
 void Msi::flush() {
 
 }
-void Msi::busRd() {
+void Msi::busRd(ulong addr) {
 
 }
-void Msi::busUpgr() {
+void Msi::busUpgr(ulong addr) {
 
 }
-void Msi::busRdX() {
+void Msi::busRdX(ulong addr) {
     numBusRdX++;
 }
 //MSI Functions
 
 //MESI Functions
-void Mesi::prRd() {
-
+void Mesi::prRd(ulong addr) {
+    Access(addr, 'r');
 }
-void Mesi::prWr() {
-
+void Mesi::prWr(ulong addr) {
+    Access(addr, 'w');
 }
 void Mesi::flush() {
 
 }
-void Mesi::busRd() {
+void Mesi::busRd(ulong addr) {
 
 }
-void Mesi::busRdX() {
+void Mesi::busRdX(ulong addr) {
     numBusRdX++;
 }
 //MESI Functions
 
 //Dragon Functions
-void Dragon::prRd() {
-
+void Dragon::prRd(ulong addr) {
+    Access(addr, 'r');
 }
-void Dragon::prWr() {
-
+void Dragon::prWr(ulong addr) {
+    Access(addr, 'w');
 }
 void Dragon::flush() {
 
 }
-void Dragon::busRd() {
+void Dragon::busRd(ulong addr) {
 
 }
-void Dragon::busUpdate() {
+void Dragon::busUpdate(ulong addr) {
 
 }
 //Dragon Functions
