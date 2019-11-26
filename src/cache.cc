@@ -15,6 +15,9 @@ Cache::Cache(int s,int a,int b )
    ulong i, j;
    reads = readMisses = writes = 0; 
    writeMisses = writeBacks = currentCycle = 0;
+   numCacheTransfers = numMemoryTransactions = 0;
+   numInterventions = numInvalidaitons = 0;
+   numFlushes = numBusRdX = 0;
 
    size       = (ulong)(s);
    lineSize   = (ulong)(b);
@@ -155,7 +158,11 @@ cacheLine *Cache::fillLine(ulong addr)
 
 void Cache::printStats(int processor_num)
 {
-    double miss_rate = (double) (readMisses + writeMisses) / (double) (reads + writes);
+    double miss_rate = 0;
+
+    if (reads != 0 || writes != 0) {
+        miss_rate = (double) (readMisses + writeMisses) / (double) (reads + writes);
+    }
 
 	cout << "============ Simulation results (Cache " << processor_num << ") ============" << endl;
 	/****print out the rest of statistics here.****/
@@ -163,7 +170,7 @@ void Cache::printStats(int processor_num)
     cout << "02. number of read misses:			" << readMisses << endl;
     cout << "03. number of writes:				" << writes << endl;
     cout << "04. number of write misses:			" << writeMisses << endl;
-    cout << setprecision(2) << fixed << "05. total miss rate:				" << miss_rate << endl;
+    cout << setprecision(2) << fixed << "05. total miss rate:				" << miss_rate << "%" << endl;
     cout << "06. number of writebacks:			" << writeBacks << endl;
     cout << "07. number of cache-to-cache transfers:		" << numCacheTransfers << endl;
     cout << "08. number of memory transactions:		" << numMemoryTransactions << endl;
