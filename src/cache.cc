@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cassert>
+#include <iostream>
+#include <iomanip>
 #include "cache.h"
 using namespace std;
 
@@ -151,9 +153,23 @@ cacheLine *Cache::fillLine(ulong addr)
    return victim;
 }
 
-void Cache::printStats()
-{ 
-	printf("===== Simulation results      =====\n");
+void Cache::printStats(int processor_num)
+{
+    double miss_rate = (double) (readMisses + writeMisses) / (double) (reads + writes);
+
+	cout << "============ Simulation results (Cache " << processor_num << ") ============" << endl;
 	/****print out the rest of statistics here.****/
-	/****follow the ouput file format**************/
+	cout << "01. number of reads:				" << reads << endl;
+    cout << "02. number of read misses:			" << readMisses << endl;
+    cout << "03. number of writes:				" << writes << endl;
+    cout << "04. number of write misses:			" << writeMisses << endl;
+    cout << setprecision(2) << fixed << "05. total miss rate:				" << miss_rate << endl;
+    cout << "06. number of writebacks:			" << writeBacks << endl;
+    cout << "07. number of cache-to-cache transfers:		" << numCacheTransfers << endl;
+    cout << "08. number of memory transactions:		" << numMemoryTransactions << endl;
+    cout << "09. number of interventions:			" << numInterventions << endl;
+    cout << "10. number of invalidations:			" << numInvalidaitons << endl;
+    cout << "11. number of flushes:				"<< numFlushes << endl;
+    cout << "12. number of BudRdX:				" << numBusRdX << endl;
+    /****follow the ouput file format**************/
 }
