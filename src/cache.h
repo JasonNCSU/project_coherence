@@ -16,7 +16,12 @@ typedef unsigned int uint;
 enum{
 	INVALID = 0,
 	VALID,
-	DIRTY
+	DIRTY,
+	M,
+	S,
+	I,
+	E,
+	O,
 };
 
 class cacheLine 
@@ -47,6 +52,7 @@ protected:
    //******///
    //add coherence counters here///
    ulong numCacheTransfers, numMemoryTransactions, numInterventions, numInvalidaitons, numFlushes, numBusRdX;
+   ulong protState;
    //******///
 
    cacheLine **cache;
@@ -78,6 +84,52 @@ public:
    //add other functions to handle bus transactions///
    //******///
 
+};
+
+class Msi : public Cache {
+public:
+    Msi(int s, int a, int b):
+        Cache(s, a, b) {};
+    ~Msi() {};
+
+    //state machine calls
+    void PrRd();
+    void PrWr();
+    void Flush();
+    void BusRd();
+    void BusUpgr();
+    void BusRdX();
+    //state machine calls
+};
+
+class Mesi : public Cache {
+public:
+    Mesi(int s, int a, int b):
+            Cache(s, a, b) {};
+    ~Mesi() {};
+
+    //state machine calls
+    void PrRd();
+    void PrWr();
+    void Flush();
+    void BusRd();
+    void BusRdX();
+    //state machine calls
+};
+
+class Dragon : public Cache {
+public:
+    Dragon(int s, int a, int b):
+            Cache(s, a, b) {};
+    ~Dragon() {};
+
+    //state machine calls
+    void PrRd();
+    void PrWr();
+    void Flush();
+    void BusRd();
+    void BusUpdate();
+    //state machine calls
 };
 
 #endif

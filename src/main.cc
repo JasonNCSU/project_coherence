@@ -59,11 +59,27 @@ int main(int argc, char *argv[])
 
 	//*********************************************//
 	//*****create an array of caches here**********//
-	Cache *processorArray = (Cache *)malloc(num_processors * sizeof(Cache));
+	//Cache *processorArray = (Cache *)malloc(8 * sizeof(Cache));
+	Cache *processorArray[num_processors];
 	int cache_counter = 0;
 	for (cache_counter = 0; cache_counter < num_processors; cache_counter++) {
-        Cache cache(cache_size, cache_assoc, blk_size);
-        processorArray[cache_counter] = cache;
+        switch (protocol) {
+            case 0:
+                //COHERENCE PROTOCOL: MSI
+                processorArray[cache_counter] = new Msi(cache_size, cache_assoc, blk_size);
+                break;
+            case 1:
+                //COHERENCE PROTOCOL: MESI
+                processorArray[cache_counter] = new Mesi(cache_size, cache_assoc, blk_size);
+                break;
+            case 2:
+                //COHERENCE PROTOCOL: Dragon
+                processorArray[cache_counter] = new Dragon(cache_size, cache_assoc, blk_size);
+                break;
+            default:
+                //unreachable, earlier if default was reached we exited program
+                exit(0);
+        }
 	}
 	//*********************************************//	
 
@@ -87,22 +103,7 @@ int main(int argc, char *argv[])
         rw = data_segment.at(2);
         addr = strtoul(data_segment.substr(4).c_str(), NULL, 16);
 
-        processorArray[processor].Access(addr, rw);
-
-        switch (protocol) {
-            case 0:
-                //COHERENCE PROTOCOL: MSI
-                break;
-            case 1:
-                //COHERENCE PROTOCOL: MESI
-                break;
-            case 2:
-                //COHERENCE PROTOCOL: Dragon
-                break;
-            default:
-                //unreachable, earlier if default was reached we exited program
-                exit(0);
-        }
+        processorArray[processor]->Access(addr, rw);
     }
 
 	///******************************************************************//
@@ -112,7 +113,7 @@ int main(int argc, char *argv[])
 	//print out all caches' statistics //
 	int print_stats = 0;
 	for (print_stats = 0; print_stats < num_processors; print_stats++) {
-	    processorArray[print_stats].printStats(print_stats, protocol);
+	    processorArray[print_stats]->printStats(print_stats, protocol);
 	}
 	//********************************//
 

@@ -29,6 +29,7 @@ Cache::Cache(int s,int a,int b )
     numCacheTransfers = numMemoryTransactions = 0;
     numInterventions = numInvalidaitons = 0;
     numFlushes = numBusRdX = 0;
+    protState = I;
    //*******************//
  
    tagMask =0;
@@ -187,3 +188,60 @@ void Cache::printStats(int processor_num, int protocol)
     cout << "12. number of BudRdX:				" << numBusRdX << endl;
     /****follow the ouput file format**************/
 }
+
+//MSI Functions
+void Msi::PrRd() {
+
+}
+void Msi::PrWr() {
+
+}
+void Msi::Flush() {
+
+}
+void Msi::BusRd() {
+
+}
+void Msi::BusUpgr() {
+
+}
+void Msi::BusRdX() {
+    numBusRdX++;
+}
+//MSI Functions
+
+//MESI Functions
+void Mesi::PrRd() {
+
+}
+void Mesi::PrWr() {
+
+}
+void Mesi::Flush() {
+
+}
+void Mesi::BusRd() {
+
+}
+void Mesi::BusRdX() {
+    numBusRdX++;
+}
+//MESI Functions
+
+//Dragon Functions
+void Dragon::PrRd() {
+
+}
+void Dragon::PrWr() {
+
+}
+void Dragon::Flush() {
+
+}
+void Dragon::BusRd() {
+
+}
+void Dragon::BusUpdate() {
+
+}
+//Dragon Functions
