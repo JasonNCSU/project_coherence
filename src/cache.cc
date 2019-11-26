@@ -55,7 +55,7 @@ Cache::Cache(int s,int a,int b )
 /**you might add other parameters to Access()
 since this function is an entry point 
 to the memory hierarchy (i.e. caches)**/
-void Cache::Access(ulong addr,uchar op)
+void Cache::Access(ulong addr,uchar op, int protocol)
 {
 	currentCycle++;/*per cache global counter to maintain LRU order 
 			among cache ways, updated on every cache access*/

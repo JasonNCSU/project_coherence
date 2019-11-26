@@ -103,7 +103,93 @@ int main(int argc, char *argv[])
         rw = data_segment.at(2);
         addr = strtoul(data_segment.substr(4).c_str(), NULL, 16);
 
-        processorArray[processor]->Access(addr, rw);
+        Cache *cachePtr = processorArray[processor];
+        cachePtr->Access(addr, rw, protocol);
+
+        switch (protocol) {
+            case 0:
+                //COHERENCE PROTOCOL: MSI
+                if (cachePtr->protState == M) {
+                    if (rw == 'w') {
+                        cachePtr->protState = M;
+                    } else {
+                        cachePtr->protState = M;
+                    }
+                } else if (cachePtr->protState == S) {
+                    if (rw == 'w') {
+                        cachePtr->protState = M;
+                        cachePtr->BusUpgr();
+                    } else {
+                        cachePtr->protState = S;
+                    }
+                } else {
+                    if (rw == 'w') {
+                        cachePtr->protState = M;
+                    } else {
+                        cachePtr->protState = S;
+                    }
+                }
+                break;
+            case 1:
+                //COHERENCE PROTOCOL: MESI
+                if (cachePtr->protState == M) {
+                    if (rw == 'w') {
+
+                    } else {
+
+                    }
+                } else if (cachePtr->protState == E) {
+                    if (rw == 'w') {
+
+                    } else {
+
+                    }
+                } else if (cachePtr->protState == S) {
+                    if (rw == 'w') {
+
+                    } else {
+
+                    }
+                } else {
+                    if (rw == 'w') {
+
+                    } else {
+
+                    }
+                }
+                break;
+            case 2:
+                //COHERENCE PROTOCOL: Dragon
+                if (cachePtr->protState == M) {
+                    if (rw == 'w') {
+
+                    } else {
+
+                    }
+                } else if (cachePtr->protState == O) {
+                    if (rw == 'w') {
+
+                    } else {
+
+                    }
+                } else if (cachePtr->protState == E) {
+                    if (rw == 'w') {
+
+                    } else {
+
+                    }
+                } else {
+                    if (rw == 'w') {
+
+                    } else {
+
+                    }
+                }
+                break;
+            default:
+                //unreachable, earlier if default was reached we exited program
+                exit(0);
+        }
     }
 
 	///******************************************************************//

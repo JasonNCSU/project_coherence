@@ -52,7 +52,6 @@ protected:
    //******///
    //add coherence counters here///
    ulong numCacheTransfers, numMemoryTransactions, numInterventions, numInvalidaitons, numFlushes, numBusRdX;
-   ulong protState;
    //******///
 
    cacheLine **cache;
@@ -61,7 +60,8 @@ protected:
    ulong calcAddr4Tag(ulong tag)   { return (tag << (log2Blk));}
    
 public:
-    ulong currentCycle;  
+    ulong currentCycle;
+    ulong protState;
      
     Cache(int,int,int);
    ~Cache() { delete cache;}
@@ -76,7 +76,7 @@ public:
    ulong getWB(){return writeBacks;}
    
    void writeBack(ulong)   {writeBacks++;}
-   void Access(ulong,uchar);
+   void Access(ulong,uchar,int);
    void printStats(int processor_num, int protocol);
    void updateLRU(cacheLine *);
 
