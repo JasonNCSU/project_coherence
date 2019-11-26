@@ -59,7 +59,6 @@ int main(int argc, char *argv[])
 
 	//*********************************************//
 	//*****create an array of caches here**********//
-	//Cache *processorArray = (Cache *)malloc(8 * sizeof(Cache));
 	Cache *processorArray[num_processors];
 	int cache_counter = 0;
 	for (cache_counter = 0; cache_counter < num_processors; cache_counter++) {
@@ -98,12 +97,13 @@ int main(int argc, char *argv[])
 	int processor = 0;
 	uchar rw = ' ';
 	ulong addr = 0;
+    Cache *cachePtr;
     while (getline(fin, data_segment)) {
         processor = data_segment.at(0) - '0';
         rw = data_segment.at(2);
         addr = strtoul(data_segment.substr(4).c_str(), NULL, 16);
 
-        Cache *cachePtr = processorArray[processor];
+        cachePtr = processorArray[processor];
         cachePtr->Access(addr, rw, protocol);
 
         switch (protocol) {
@@ -117,15 +117,17 @@ int main(int argc, char *argv[])
                     }
                 } else if (cachePtr->protState == S) {
                     if (rw == 'w') {
+                        cachePtr->busUpgr();
                         cachePtr->protState = M;
-                        cachePtr->BusUpgr();
                     } else {
                         cachePtr->protState = S;
                     }
                 } else {
                     if (rw == 'w') {
+                        cachePtr->busRdX();
                         cachePtr->protState = M;
                     } else {
+                        cachePtr->busRd();
                         cachePtr->protState = S;
                     }
                 }
@@ -134,27 +136,35 @@ int main(int argc, char *argv[])
                 //COHERENCE PROTOCOL: MESI
                 if (cachePtr->protState == M) {
                     if (rw == 'w') {
-
+                        cachePtr->protState = M;
                     } else {
-
+                        cachePtr->protState = M;
                     }
                 } else if (cachePtr->protState == E) {
                     if (rw == 'w') {
-
+                        cachePtr->protState = M;
                     } else {
-
+                        cachePtr->protState = E;
                     }
                 } else if (cachePtr->protState == S) {
                     if (rw == 'w') {
-
+                        cachePtr->busRdX();
+                        cachePtr->protState = M;
                     } else {
-
+                        cachePtr->protState = S;
                     }
                 } else {
                     if (rw == 'w') {
-
+                        cachePtr->busRdX();
+                        cachePtr->protState = M;
                     } else {
-
+                        if (cachePtr->shared) {
+                            cachePtr->busRd();
+                            cachePtr->protState = S;
+                        } else {
+                            cachePtr->busRd();
+                            cachePtr->protState = E;
+                        }
                     }
                 }
                 break;
@@ -162,27 +172,36 @@ int main(int argc, char *argv[])
                 //COHERENCE PROTOCOL: Dragon
                 if (cachePtr->protState == M) {
                     if (rw == 'w') {
-
+                        cachePtr->protState = M;
                     } else {
-
+                        cachePtr->protState = M;
                     }
                 } else if (cachePtr->protState == O) {
                     if (rw == 'w') {
-
+                        if (cachePtr->shared) {
+                            cachePtr->busUpdate();
+                            cachePtr->protState = O;
+                        } else {
+                            cachePtr->protState = M;
+                        }
                     } else {
-
+                        cachePtr->protState = O;
                     }
                 } else if (cachePtr->protState == E) {
                     if (rw == 'w') {
-
+                        cachePtr->protState = M;
                     } else {
-
+                        cachePtr->protState = E;
                     }
                 } else {
                     if (rw == 'w') {
-
+                        if (cachePtr->shared) {
+                            cachePtr->protState = O;
+                        } else {
+                            cachePtr->protState = M;
+                        }
                     } else {
-
+                        cachePtr->protState = S;
                     }
                 }
                 break;

@@ -62,6 +62,7 @@ protected:
 public:
     ulong currentCycle;
     ulong protState;
+    bool shared;
      
     Cache(int,int,int);
    ~Cache() { delete cache;}
@@ -82,6 +83,13 @@ public:
 
    //******///
    //add other functions to handle bus transactions///
+   virtual void prRd();
+   virtual void prWr();
+   virtual void flush() {return;};
+   virtual void busRd() {return;};
+   virtual void busUpgr() {return;};
+   virtual void busUpdate() {return;};
+   virtual void busRdX() {return;};
    //******///
 
 };
@@ -93,12 +101,12 @@ public:
     ~Msi() {};
 
     //state machine calls
-    void PrRd();
-    void PrWr();
-    void Flush();
-    void BusRd();
-    void BusUpgr();
-    void BusRdX();
+    void prRd();
+    void prWr();
+    void flush();
+    void busRd();
+    void busUpgr();
+    void busRdX();
     //state machine calls
 };
 
@@ -109,11 +117,11 @@ public:
     ~Mesi() {};
 
     //state machine calls
-    void PrRd();
-    void PrWr();
-    void Flush();
-    void BusRd();
-    void BusRdX();
+    void prRd();
+    void prWr();
+    void flush();
+    void busRd();
+    void busRdX();
     //state machine calls
 };
 
@@ -124,11 +132,11 @@ public:
     ~Dragon() {};
 
     //state machine calls
-    void PrRd();
-    void PrWr();
-    void Flush();
-    void BusRd();
-    void BusUpdate();
+    void prRd();
+    void prWr();
+    void flush();
+    void busRd();
+    void busUpdate();
     //state machine calls
 };
 

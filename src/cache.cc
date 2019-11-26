@@ -30,6 +30,7 @@ Cache::Cache(int s,int a,int b )
     numInterventions = numInvalidaitons = 0;
     numFlushes = numBusRdX = 0;
     protState = I;
+    shared = false;
    //*******************//
  
    tagMask =0;
@@ -190,58 +191,58 @@ void Cache::printStats(int processor_num, int protocol)
 }
 
 //MSI Functions
-void Msi::PrRd() {
+void Msi::prRd() {
 
 }
-void Msi::PrWr() {
+void Msi::prWr() {
 
 }
-void Msi::Flush() {
+void Msi::flush() {
 
 }
-void Msi::BusRd() {
+void Msi::busRd() {
 
 }
-void Msi::BusUpgr() {
+void Msi::busUpgr() {
 
 }
-void Msi::BusRdX() {
+void Msi::busRdX() {
     numBusRdX++;
 }
 //MSI Functions
 
 //MESI Functions
-void Mesi::PrRd() {
+void Mesi::prRd() {
 
 }
-void Mesi::PrWr() {
+void Mesi::prWr() {
 
 }
-void Mesi::Flush() {
+void Mesi::flush() {
 
 }
-void Mesi::BusRd() {
+void Mesi::busRd() {
 
 }
-void Mesi::BusRdX() {
+void Mesi::busRdX() {
     numBusRdX++;
 }
 //MESI Functions
 
 //Dragon Functions
-void Dragon::PrRd() {
+void Dragon::prRd() {
 
 }
-void Dragon::PrWr() {
+void Dragon::prWr() {
 
 }
-void Dragon::Flush() {
+void Dragon::flush() {
 
 }
-void Dragon::BusRd() {
+void Dragon::busRd() {
 
 }
-void Dragon::BusUpdate() {
+void Dragon::busUpdate() {
 
 }
 //Dragon Functions

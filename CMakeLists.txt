@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.8)
 project(project_coherence)
 
-add_library(src "src/main.cc" "src/cache.h" "src/cache.cc")
+add_library(src "src/cache.h" "src/cache.cc" "src/main.cc")
 add_subdirectory("val.v2")
 
 add_executable(main "src/main.cc")
