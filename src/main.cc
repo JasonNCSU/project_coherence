@@ -146,83 +146,19 @@ int main(int argc, char *argv[])
         addr = strtoul(data_segment.substr(4).c_str(), NULL, 16);
 
         cachePtr = processorArray[processor];
-        oldState = cachePtr->Access(addr, rw, protocol);
-        newState = cachePtr->findLine(addr)->getFlags();
 
-        switch (protocol) {
-            case 0:
-                //COHERENCE PROTOCOL: MSI
-                if (oldState == S) {
-                    if (newState == M) {
-                        //BusUpgr()
-                        for (int i = 0; i < num_processors; i++) {
-                            if (i != processor) {
-                                if (processorArray[i]->findLine(addr)) {
-                                    if (processorArray[i]->findLine(addr)->getFlags() == S) {
-                                        processorArray[i]->findLine(addr)->setFlags(I);
-                                        processorArray[i]->invalidations();
-                                    }
-                                }
-                            }
-                        }
-                    } else if (newState == S) {
-                        //BusRd()
-                        for (int i = 0; i < num_processors; i++) {
-                            if (i != processor) {
-                                if (processorArray[i]->findLine(addr)) {
-                                    if (processorArray[i]->findLine(addr)->getFlags() == M) {
-                                        processorArray[i]->findLine(addr)->setFlags(S);
-                                        processorArray[i]->flush();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else if (oldState == I) {
-                    if (newState == M) {
-                        //BusRdX()
-                        for (int i = 0; i < num_processors; i++) {
-                            if (i != processor) {
-                                if (processorArray[i]->findLine(addr)) {
-                                    if (processorArray[i]->findLine(addr)->getFlags() == M) {
-                                        processorArray[i]->findLine(addr)->setFlags(I);
-                                        processorArray[i]->flush();
-                                        processorArray[i]->invalidations();
-                                        processorArray[i]->busRdX();
-                                    } else if (processorArray[i]->findLine(addr)->getFlags() == S) {
-                                        processorArray[i]->findLine(addr)->setFlags(I);
-                                        processorArray[i]->invalidations();
-                                        processorArray[i]->busRdX();
-                                    }
-                                }
-                            }
-                        }
-                    } else if (newState == S) {
-                        //BusRd()
-                        for (int i = 0; i < num_processors; i++) {
-                            if (i != processor) {
-                                if (processorArray[i]->findLine(addr)) {
-                                    if (processorArray[i]->findLine(addr)->getFlags() == M) {
-                                        processorArray[i]->findLine(addr)->setFlags(S);
-                                        processorArray[i]->flush();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-            case 1:
-                //COHERENCE PROTOCOL: MESI
+        if (rw == 'w') {
+            cachePtr->prWr(addr);
+        } else {
+            cachePtr->prRd(addr);
+        }
 
-                break;
-            case 2:
-                //COHERENCE PROTOCOL: Dragon
-
-                break;
-            default:
-                //unreachable, earlier if default was reached we exited program
-                exit(0);
+        if (protocol == 0) {
+            if (cachePtr->busReads) {
+                doBusRds(addr, processor);
+            } else if (cachePtr->busReadXs) {
+                doBusRdXs(addr, processor);
+            }
         }
     }
 

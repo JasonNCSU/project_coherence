@@ -29,8 +29,7 @@ Cache::Cache(int s,int a,int b )
     numCacheTransfers = numMemoryTransactions = 0;
     numInterventions = numInvalidaitons = 0;
     numFlushes = numBusRdX = 0;
-    protState = I;
-    shared = false;
+    busReads = busReadXs = false;
    //*******************//
  
    tagMask =0;
@@ -58,11 +57,9 @@ since this function is an entry point
 to the memory hierarchy (i.e. caches)**/
 ulong Cache::Access(ulong addr,uchar op, ulong protocol)
 {
-	currentCycle++;/*per cache global counter to maintain LRU order 
+	/*per cache global counter to maintain LRU order
 			among cache ways, updated on every cache access*/
-        	
-	if(op == 'w') writes++;
-	else          reads++;
+
 	
 	cacheLine * line = findLine(addr);
 
@@ -83,9 +80,8 @@ ulong Cache::Access(ulong addr,uchar op, ulong protocol)
             } else {
                 newline->setFlags(S);
             }
-		}
-   		else if(op == 'w') {
-   		    if (protocol == 0) {
+		} else if(op == 'w') {
+		    if (protocol == 0) {
    		        newline->setFlags(M);
                 oldState = I;
    		    } else if (protocol == 1) {
@@ -195,11 +191,11 @@ void Cache::printStats(int processor_num, int protocol)
 {
     double miss_rate = 0;
     if (protocol == 0) {
-        numMemoryTransactions = readMisses + writeBacks + numBusRdX;
+        //numMemoryTransactions = readMisses + writeBacks + numBusRdX;
     } else if (protocol == 1) {
-        numMemoryTransactions = readMisses + writeBacks + numBusRdX - numCacheTransfers;
+        //numMemoryTransactions = readMisses + writeBacks + numBusRdX - numCacheTransfers;
     } else {
-        numMemoryTransactions = readMisses + writeMisses + writeBacks;
+        //numMemoryTransactions = readMisses + writeMisses + writeBacks;
     }
 
     if (reads != 0 || writes != 0) {
@@ -219,37 +215,51 @@ void Cache::printStats(int processor_num, int protocol)
     cout << "09. number of interventions:			" << numInterventions << endl;
     cout << "10. number of invalidations:			" << numInvalidaitons << endl;
     cout << "11. number of flushes:				"<< numFlushes << endl;
-    cout << "12. number of BudRdX:				" << numBusRdX << endl;
+    cout << "12. number of BusRdX:				" << numBusRdX << endl;
     /****follow the ouput file format**************/
 }
 
 //MSI Functions
 void Msi::prRd(ulong addr) {
+    currentCycle++;
+    reads++;
+    cacheLine *line = findLine(addr);
 
+    if (!line) {
+        readMisses++;
+        cacheLine *newline = fillLine(addr);
+        memTransaction();
+        newline->setFlags(S);
+        busReads = true;
+    } else if (line->getFlags() != I) {
+        updateLRU(line);
+    }
 }
 void Msi::prWr(ulong addr) {
-    //increment cycle and writes
+    currentCycle++;
+    writes++;
     cacheLine *line = findLine(addr);
+
     if (!line) {
         writeMisses++;
-        numMemoryTransactions++;
+        memTransaction();
         cacheLine *newline = fillLine(addr);
         newline->setFlags(M);
         numBusRdX++;
-        busRdX(addr);
+        busReadXs = true;
     } else if (line->getFlags() == I) {
         writeMisses++;
-        numMemoryTransactions++;
+        memTransaction();
         numBusRdX++;
         line->setFlags(M);
-        busRdX(addr);
+        busReadXs = true;
     } else {
         updateLRU(line);
         if (line->getFlags() == S) {
             line->setFlags(M);
-            numMemoryTransactions++;
+            memTransaction();
             numBusRdX++;
-            busRdX(addr);
+            busReadXs = true;
         }
     }
 }
@@ -259,14 +269,41 @@ void Msi::flush() {
 void Msi::invalidations() {
     numInvalidaitons++;
 }
+void Msi::memTransaction() {
+    numMemoryTransactions++;
+}
 void Msi::busRd(ulong addr) {
+    cacheLine *line = findLine(addr);
+    ulong state;
 
+    if (line) {
+        state = line->getFlags();
+        if (state == M) {
+            line->setFlags(S);
+            flush();
+        }
+    }
 }
 void Msi::busUpgr(ulong addr) {
 
 }
 void Msi::busRdX(ulong addr) {
     numBusRdX++;
+    cacheLine *line = findLine(addr);
+    ulong state;
+    if (line) {
+        state = line->getFlags();
+        if (state == S) {
+            line->setFlags(I);
+            invalidations();
+        } else if (state == M) {
+            flush();
+            writeBack(addr);
+            memTransaction();
+            line->setFlags(I);
+            invalidations();
+        }
+    }
 }
 //MSI Functions
 

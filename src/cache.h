@@ -61,8 +61,7 @@ protected:
    
 public:
     ulong currentCycle;
-    ulong protState;
-    bool shared;
+    bool busReads, busReadXs;
      
     Cache(int,int,int);
    ~Cache() { delete cache;}
@@ -87,6 +86,7 @@ public:
    virtual void prWr(ulong) = 0;
    virtual void flush() {return;};
    virtual void invalidations() {return;};
+   virtual void memTransaction() {return;};
    virtual void busRd(ulong) {return;};
    virtual void busUpgr(ulong) {return;};
    virtual void busUpdate(ulong) {return;};
@@ -107,6 +107,7 @@ public:
     void prWr(ulong);
     void flush();
     void invalidations();
+    void memTransaction();
     void busRd(ulong);
     void busUpgr(ulong);
     void busRdX(ulong);
