@@ -42,11 +42,11 @@ class Cache
 {
 protected:
    ulong size, lineSize, assoc, sets, log2Sets, log2Blk, tagMask, numLines;
-   ulong reads,readMisses,writes,writeMisses,writeBacks,
-   numCacheTransfers, numMemoryTransactions, numInterventions, numInvalidaitons, numFlushes, numBusRdX;
+   ulong reads,readMisses,writes,writeMisses,writeBacks;
 
    //******///
    //add coherence counters here///
+   ulong numCacheTransfers, numMemoryTransactions, numInterventions, numInvalidaitons, numFlushes, numBusRdX;
    //******///
 
    cacheLine **cache;

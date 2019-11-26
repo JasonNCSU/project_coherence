@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     printf("Iason Katsaros\n");
     printf("ikatsar\n");
     printf("ECE492 Students? NO\n");
-	printf("===== Simulator configuration =====\n");
+	printf("===== 506 SMP Simulator configuration =====\n");
 	//*******print out simulator configuration here*******//
 	//****************************************************//
     cout << "L1_SIZE: " << cache_size << endl;
@@ -59,7 +59,13 @@ int main(int argc, char *argv[])
     cout << "TRACE FILE: " << fname << endl;
 
 	//*********************************************//
-        //*****create an array of caches here**********//
+	//*****create an array of caches here**********//
+	Cache *processorArray = (Cache *)malloc(num_processors * sizeof(Cache));
+	int cache_counter = 0;
+	for (cache_counter = 0; cache_counter < num_processors; cache_counter++) {
+        Cache cache(cache_size, cache_assoc, blk_size);
+        processorArray[cache_counter] = cache;
+	}
 	//*********************************************//	
 
 	pFile = fopen (fname,"r");
@@ -78,8 +84,8 @@ int main(int argc, char *argv[])
 	//********************************//
 	//print out all caches' statistics //
 	int print_stats = 0;
-	for (print_stats; print_stats < num_processors; print_stats++) {
-	    printStats(print_stats);
+	for (print_stats = 0; print_stats < num_processors; print_stats++) {
+	    processorArray[print_stats].printStats(print_stats);
 	}
 	//********************************//
 
