@@ -56,7 +56,7 @@ Cache::Cache(int s,int a,int b )
 /**you might add other parameters to Access()
 since this function is an entry point 
 to the memory hierarchy (i.e. caches)**/
-void Cache::Access(ulong addr,uchar op)
+ulong Cache::Access(ulong addr,uchar op, ulong protocol)
 {
 	currentCycle++;/*per cache global counter to maintain LRU order 
 			among cache ways, updated on every cache access*/
@@ -65,21 +65,54 @@ void Cache::Access(ulong addr,uchar op)
 	else          reads++;
 	
 	cacheLine * line = findLine(addr);
+
+	ulong oldState;
+
 	if(line == NULL)/*miss*/
 	{
 		if(op == 'w') writeMisses++;
 		else readMisses++;
 
 		cacheLine *newline = fillLine(addr);
-   		if(op == 'w') newline->setFlags(DIRTY);    
+		if(op == 'r') {
+            if (protocol == 0) {
+                newline->setFlags(S);
+                oldState = I;
+            } else if (protocol == 1) {
+                newline->setFlags(S);
+            } else {
+                newline->setFlags(S);
+            }
+		}
+   		else if(op == 'w') {
+   		    if (protocol == 0) {
+   		        newline->setFlags(M);
+                oldState = I;
+   		    } else if (protocol == 1) {
+                newline->setFlags(M);
+   		    } else {
+                newline->setFlags(M);
+   		    }
+   		}
 		
 	}
 	else
 	{
+	    oldState = line->getFlags();
 		/**since it's a hit, update LRU and update dirty flag**/
 		updateLRU(line);
-		if(op == 'w') line->setFlags(DIRTY);
+		if(op == 'w') {
+            if (protocol == 0) {
+                line->setFlags(M);
+            } else if (protocol == 1) {
+                line->setFlags(M);
+            } else {
+                line->setFlags(M);
+            }
+        }
 	}
+
+	return oldState;
 }
 
 /*look up line*/
@@ -147,7 +180,7 @@ cacheLine *Cache::fillLine(ulong addr)
   
    cacheLine *victim = findLineToReplace(addr);
    assert(victim != 0);
-   if(victim->getFlags() == DIRTY) writeBack(addr);
+   if(victim->getFlags() == DIRTY || victim->getFlags() == M) writeBack(addr);
     	
    tag = calcTag(addr);   
    victim->setTag(tag);
@@ -170,7 +203,7 @@ void Cache::printStats(int processor_num, int protocol)
     }
 
     if (reads != 0 || writes != 0) {
-        miss_rate = (double) (readMisses + writeMisses) / (double) (reads + writes);
+        miss_rate = 100 * (double) (readMisses + writeMisses) / (double) (reads + writes);
     }
 
 	cout << "============ Simulation results (Cache " << processor_num << ") ============" << endl;
@@ -192,13 +225,39 @@ void Cache::printStats(int processor_num, int protocol)
 
 //MSI Functions
 void Msi::prRd(ulong addr) {
-    Access(addr, 'r');
+
 }
 void Msi::prWr(ulong addr) {
-    Access(addr, 'w');
+    //increment cycle and writes
+    cacheLine *line = findLine(addr);
+    if (!line) {
+        writeMisses++;
+        numMemoryTransactions++;
+        cacheLine *newline = fillLine(addr);
+        newline->setFlags(M);
+        numBusRdX++;
+        busRdX(addr);
+    } else if (line->getFlags() == I) {
+        writeMisses++;
+        numMemoryTransactions++;
+        numBusRdX++;
+        line->setFlags(M);
+        busRdX(addr);
+    } else {
+        updateLRU(line);
+        if (line->getFlags() == S) {
+            line->setFlags(M);
+            numMemoryTransactions++;
+            numBusRdX++;
+            busRdX(addr);
+        }
+    }
 }
 void Msi::flush() {
     numFlushes++;
+}
+void Msi::invalidations() {
+    numInvalidaitons++;
 }
 void Msi::busRd(ulong addr) {
 
@@ -213,10 +272,10 @@ void Msi::busRdX(ulong addr) {
 
 //MESI Functions
 void Mesi::prRd(ulong addr) {
-    Access(addr, 'r');
+
 }
 void Mesi::prWr(ulong addr) {
-    Access(addr, 'w');
+
 }
 void Mesi::flush() {
 
@@ -226,6 +285,9 @@ void Mesi::busRd(ulong addr) {
 }
 void Mesi::busRdX(ulong addr) {
     numBusRdX++;
+}
+void Mesi::busWr(ulong addr) {
+
 }
 //MESI Functions
 

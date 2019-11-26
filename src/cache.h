@@ -77,7 +77,7 @@ public:
    ulong getWB(){return writeBacks;}
    
    void writeBack(ulong)   {writeBacks++;}
-   void Access(ulong,uchar);
+   ulong Access(ulong,uchar,ulong);
    void printStats(int processor_num, int protocol);
    void updateLRU(cacheLine *);
 
@@ -86,10 +86,12 @@ public:
    virtual void prRd(ulong) = 0;
    virtual void prWr(ulong) = 0;
    virtual void flush() {return;};
+   virtual void invalidations() {return;};
    virtual void busRd(ulong) {return;};
    virtual void busUpgr(ulong) {return;};
    virtual void busUpdate(ulong) {return;};
    virtual void busRdX(ulong) {return;};
+   virtual void busWr(ulong) {return;};
    //******///
 
 };
@@ -104,6 +106,7 @@ public:
     void prRd(ulong);
     void prWr(ulong);
     void flush();
+    void invalidations();
     void busRd(ulong);
     void busUpgr(ulong);
     void busRdX(ulong);
@@ -122,6 +125,7 @@ public:
     void flush();
     void busRd(ulong);
     void busRdX(ulong);
+    void busWr(ulong);
     //state machine calls
 };
 

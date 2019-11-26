@@ -8,6 +8,45 @@
 #include "cache.h"
 using namespace std;
 
+Cache *processorArray[8];
+int num_processors;
+
+//Coherence Methods
+int numShares(ulong addr) {
+    int sharers = 0;
+    for (int i = 0; i < num_processors; i++) {
+        if (processorArray[i]->findLine(addr)) {
+            sharers++;
+        }
+    }
+    return sharers;
+}
+
+void doBusRds(ulong addr, int processor) {
+    for (int i = 0; i < num_processors; i++) {
+        if (i != processor) {
+            processorArray[i]->busRd(addr);
+        }
+    }
+}
+
+void doBusWrs(ulong addr, int processor) {
+    for (int i = 0; i < num_processors; i++) {
+        if (i != processor) {
+            processorArray[i]->busWr(addr);
+        }
+    }
+}
+
+void doBusRdXs(ulong addr, int processor) {
+    for (int i = 0; i < num_processors; i++) {
+        if (i != processor) {
+            processorArray[i]->busRdX(addr);
+        }
+    }
+}
+//Coherence Methods
+
 int main(int argc, char *argv[])
 {
 
@@ -23,7 +62,7 @@ int main(int argc, char *argv[])
 	int cache_size = atoi(argv[1]);
 	int cache_assoc= atoi(argv[2]);
 	int blk_size   = atoi(argv[3]);
-	int num_processors = atoi(argv[4]);/*1, 2, 4, 8*/
+	num_processors = atoi(argv[4]);/*1, 2, 4, 8*/
 	int protocol   = atoi(argv[5]);	 /*0:MSI, 1:MESI, 2:Dragon*/
 	char *fname =  (char *)malloc(20);
  	fname = argv[6];
@@ -59,7 +98,7 @@ int main(int argc, char *argv[])
 
 	//*********************************************//
 	//*****create an array of caches here**********//
-	Cache *processorArray[num_processors];
+
 	int cache_counter = 0;
 	for (cache_counter = 0; cache_counter < num_processors; cache_counter++) {
         switch (protocol) {
@@ -98,42 +137,75 @@ int main(int argc, char *argv[])
 	uchar rw = ' ';
 	ulong addr = 0;
     Cache *cachePtr;
+    ulong oldState;
+    ulong newState;
+
     while (getline(fin, data_segment)) {
         processor = data_segment.at(0) - '0';
         rw = data_segment.at(2);
         addr = strtoul(data_segment.substr(4).c_str(), NULL, 16);
 
         cachePtr = processorArray[processor];
-        cachePtr->Access(addr, rw);
+        oldState = cachePtr->Access(addr, rw, protocol);
+        newState = cachePtr->findLine(addr)->getFlags();
 
         switch (protocol) {
             case 0:
                 //COHERENCE PROTOCOL: MSI
-                if (cachePtr->protState == M) {
-                    if (rw == 'w') {
-                        cachePtr->protState = M;
-
-                    } else {
-                        cachePtr->protState = M;
-                    }
-                } else if (cachePtr->protState == S) {
-                    if (rw == 'w') {
-                        //cachePtr->busUpgr();
-                        cachePtr->protState = M;
-                    } else {
-                        cachePtr->protState = S;
-                    }
-                } else {
-                    if (rw == 'w') {
-                        cachePtr->protState = M;
-                        //cachePtr->busRdX();
-                    } else {
-                        cachePtr->protState = S;
+                if (oldState == S) {
+                    if (newState == M) {
+                        //BusUpgr()
                         for (int i = 0; i < num_processors; i++) {
                             if (i != processor) {
-                                if (processorArray[i]->findLine(addr)->getFlags() == M) {
-                                    processorArray[i]->findLine(addr)->setFlags(S);
-                                    processorArray[i]->flush();
+                                if (processorArray[i]->findLine(addr)) {
+                                    if (processorArray[i]->findLine(addr)->getFlags() == S) {
+                                        processorArray[i]->findLine(addr)->setFlags(I);
+                                        processorArray[i]->invalidations();
+                                    }
+                                }
+                            }
+                        }
+                    } else if (newState == S) {
+                        //BusRd()
+                        for (int i = 0; i < num_processors; i++) {
+                            if (i != processor) {
+                                if (processorArray[i]->findLine(addr)) {
+                                    if (processorArray[i]->findLine(addr)->getFlags() == M) {
+                                        processorArray[i]->findLine(addr)->setFlags(S);
+                                        processorArray[i]->flush();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else if (oldState == I) {
+                    if (newState == M) {
+                        //BusRdX()
+                        for (int i = 0; i < num_processors; i++) {
+                            if (i != processor) {
+                                if (processorArray[i]->findLine(addr)) {
+                                    if (processorArray[i]->findLine(addr)->getFlags() == M) {
+                                        processorArray[i]->findLine(addr)->setFlags(I);
+                                        processorArray[i]->flush();
+                                        processorArray[i]->invalidations();
+                                        processorArray[i]->busRdX();
+                                    } else if (processorArray[i]->findLine(addr)->getFlags() == S) {
+                                        processorArray[i]->findLine(addr)->setFlags(I);
+                                        processorArray[i]->invalidations();
+                                        processorArray[i]->busRdX();
+                                    }
+                                }
+                            }
+                        }
+                    } else if (newState == S) {
+                        //BusRd()
+                        for (int i = 0; i < num_processors; i++) {
+                            if (i != processor) {
+                                if (processorArray[i]->findLine(addr)) {
+                                    if (processorArray[i]->findLine(addr)->getFlags() == M) {
+                                        processorArray[i]->findLine(addr)->setFlags(S);
+                                        processorArray[i]->flush();
+                                    }
                                 }
                             }
                         }
@@ -142,76 +214,11 @@ int main(int argc, char *argv[])
                 break;
             case 1:
                 //COHERENCE PROTOCOL: MESI
-                if (cachePtr->protState == M) {
-                    if (rw == 'w') {
-                        cachePtr->protState = M;
-                    } else {
-                        cachePtr->protState = M;
-                    }
-                } else if (cachePtr->protState == E) {
-                    if (rw == 'w') {
-                        cachePtr->protState = M;
-                    } else {
-                        cachePtr->protState = E;
-                    }
-                } else if (cachePtr->protState == S) {
-                    if (rw == 'w') {
-                        //cachePtr->busRdX();
-                        cachePtr->protState = M;
-                    } else {
-                        cachePtr->protState = S;
-                    }
-                } else {
-                    if (rw == 'w') {
-                        //cachePtr->busRdX();
-                        cachePtr->protState = M;
-                    } else {
-                        if (cachePtr->shared) {
-                            //cachePtr->busRd();
-                            cachePtr->protState = S;
-                        } else {
-                            //cachePtr->busRd();
-                            cachePtr->protState = E;
-                        }
-                    }
-                }
+
                 break;
             case 2:
                 //COHERENCE PROTOCOL: Dragon
-                if (cachePtr->protState == M) {
-                    if (rw == 'w') {
-                        cachePtr->protState = M;
-                    } else {
-                        cachePtr->protState = M;
-                    }
-                } else if (cachePtr->protState == O) {
-                    if (rw == 'w') {
-                        if (cachePtr->shared) {
-                            //cachePtr->busUpdate();
-                            cachePtr->protState = O;
-                        } else {
-                            cachePtr->protState = M;
-                        }
-                    } else {
-                        cachePtr->protState = O;
-                    }
-                } else if (cachePtr->protState == E) {
-                    if (rw == 'w') {
-                        cachePtr->protState = M;
-                    } else {
-                        cachePtr->protState = E;
-                    }
-                } else {
-                    if (rw == 'w') {
-                        if (cachePtr->shared) {
-                            cachePtr->protState = O;
-                        } else {
-                            cachePtr->protState = M;
-                        }
-                    } else {
-                        cachePtr->protState = S;
-                    }
-                }
+
                 break;
             default:
                 //unreachable, earlier if default was reached we exited program
