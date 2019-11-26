@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
             cout << "COHERENCE PROTOCOL: Dragon" << endl;
             break;
         default:
-            cout << "PROTOCOL WAS NEITHER 0, 1, OR 2" << endl;
-            break;
+            cout << "PROTOCOL WAS NEITHER 0, 1, OR 2 - ENDING PROGRAM" << endl;
+            exit(0);
     }
     cout << "TRACE FILE: " << fname << endl;
 
