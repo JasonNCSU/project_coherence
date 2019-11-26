@@ -83,9 +83,9 @@ int main(int argc, char *argv[])
 	uchar rw = ' ';
 	ulong addr = 0;
     while (getline(fin, data_segment)) {
-        processor = data_segment.at(0);
+        processor = data_segment.at(0) - '0';
         rw = data_segment.at(2);
-        addr = strtoul(data_segment.substr(4).c_str(), nullptr, 16);
+        addr = strtoul(data_segment.substr(4).c_str(), NULL, 16);
 
         processorArray[processor].Access(addr, rw);
 
