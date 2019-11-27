@@ -49,6 +49,13 @@ void doBusUpgrs(ulong addr, int processor) {
         }
     }
 }
+void doBusUpdates(ulong addr, int processor) {
+    for (int i = 0; i < num_processors; i++) {
+        if (i != processor) {
+            processorArray[i]->busUpdate(addr);
+        }
+    }
+}
 //Coherence Methods
 
 int main(int argc, char *argv[])
@@ -149,10 +156,8 @@ int main(int argc, char *argv[])
 
         cachePtr = processorArray[processor];
 
-        if (protocol == 1 || protocol == 2) {
-            if (numShares(addr) != 0) {
-                processorArray[processor]->copies = true;
-            };
+        if (numShares(addr) != 0) {
+            processorArray[processor]->copies = true;
         }
 
         if (rw == 'w') {
@@ -161,17 +166,21 @@ int main(int argc, char *argv[])
             cachePtr->prRd(addr);
         }
 
-        if (protocol == 0 || protocol == 1) {
-            if (cachePtr->busReads) {
-                doBusRds(addr, processor);
-                cachePtr->busReads = false;
-            } else if (cachePtr->busReadXs) {
-                doBusRdXs(addr, processor);
-                cachePtr->busReadXs = false;
-            } else if (cachePtr->busUpgrd) {
-                doBusUpgrs(addr, processor);
-                cachePtr->busUpgrd = false;
-            }
+        if (cachePtr->busReads) {
+            doBusRds(addr, processor);
+            cachePtr->busReads = false;
+        } else if (cachePtr->busReadXs) {
+            doBusRdXs(addr, processor);
+            cachePtr->busReadXs = false;
+        } else if (cachePtr->busUpgrd) {
+            doBusUpgrs(addr, processor);
+            cachePtr->busUpgrd = false;
+        } else if (cachePtr->busUpd) {
+            doBusUpdates(addr, processor);
+            cachePtr->busUpd = false;
+        } else if (cachePtr->updateFlg) {
+            doBusWrs(addr, processor);
+            cachePtr->updateFlg = false;
         }
     }
 

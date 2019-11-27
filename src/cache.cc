@@ -29,7 +29,8 @@ Cache::Cache(int s,int a,int b)
     numCacheTransfers = numMemoryTransactions = 0;
     numInterventions = numInvalid = 0;
     numFlushes = numBusRdX = 0;
-    busReads = busReadXs = busUpgrd = busUpd = copies = false;
+    busReads = busReadXs = busUpgrd = false;
+    busUpd = copies = updateFlg = false;
    //*******************//
  
    tagMask =0;
@@ -176,7 +177,7 @@ cacheLine *Cache::fillLine(ulong addr)
   
    cacheLine *victim = findLineToReplace(addr);
    assert(victim != 0);
-   if(victim->getFlags() == DIRTY || victim->getFlags() == M) writeBack(addr);
+   if(victim->getFlags() == DIRTY || victim->getFlags() == M || victim->getFlags() == Sm) writeBack(addr);
     	
    tag = calcTag(addr);   
    victim->setTag(tag);
@@ -354,6 +355,7 @@ void Mesi::prWr(ulong addr) {
         busUpgrd = true;
     } else if (line->getFlags() == E) {
         updateLRU(line);
+        numInterventions++;
         line->setFlags(M);
     }
 
@@ -379,7 +381,7 @@ void Mesi::busRd(ulong addr) {
             flushOpt();
         } else if (state == S) {
             line->setFlags(S);
-            flushOpt();
+            //flushOpt();
         }
     }
 }
@@ -396,7 +398,7 @@ void Mesi::busRdX(ulong addr) {
         } else if (state == E || state == S) {
             line->setFlags(I);
             numInvalid++;
-            flushOpt();
+            //flushOpt();
         }
     }
 }
@@ -454,6 +456,7 @@ void Dragon::prWr(ulong addr) {
         line->setFlags(M);
     } else if (line->getFlags() == Sc) {
         updateLRU(line);
+        numInterventions++;
         line->setFlags(Sm);
         busUpd = true;
     } else if (line->getFlags() == Sm) {
@@ -468,19 +471,42 @@ void Dragon::prWrMiss(ulong addr) {
     cacheLine *newline = fillLine(addr);
     if (copies) {
         newline->setFlags(Sm);
-        busUpgrd = true;
+        busUpd = true;
     } else {
         newline->setFlags(M);
     }
     busReads = true;
 }
 void Dragon::busRd(ulong addr) {
-
+    cacheLine *line = findLine(addr);
+    if (line) {
+        ulong state = line->getFlags();
+        if (state == E) {
+            line->setFlags(Sc);
+            numInterventions++;
+        } else if (state == M) {
+            line->setFlags(Sm);
+            flush();
+        } else if (state == Sm) {
+            flush();
+        }
+    }
 }
 void Dragon::flush() {
-
+    numFlushes++;
 }
 void Dragon::busUpdate(ulong addr) {
-
+    cacheLine *line = findLine(addr);
+    if (line) {
+        ulong state = line->getFlags();
+        if (state == Sc) {
+            updateFlg = true;
+        } else if (state == Sm) {
+            line->setFlags(Sc);
+            updateFlg = true;
+        }
+    }
+}
+void Dragon::busWr(ulong addr) {
 }
 //Dragon Functions
