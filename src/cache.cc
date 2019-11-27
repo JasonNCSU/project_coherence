@@ -282,7 +282,6 @@ void Msi::busRd(ulong addr) {
             line->setFlags(S);
             numInterventions++;
             flush();
-            writeBack(addr);
         }
     }
 }
@@ -371,7 +370,6 @@ void Mesi::busRd(ulong addr) {
             writeBack(addr);
         } else if (state == E) {
             line->setFlags(S);
-            numInterventions++;
             flushOpt();
             writeBack(addr);
         }
