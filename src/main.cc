@@ -26,10 +26,6 @@ void doBusRds(ulong addr, int processor) {
         if (i != processor) {
             processorArray[i]->busRd(addr);
         }
-        if (processorArray[i]->busRdFlush) {
-            processorArray[i]->busRdFlush = false;
-
-        }
     }
 }
 void doBusWrs(ulong addr, int processor) {
@@ -71,8 +67,8 @@ int main(int argc, char *argv[])
 	
 	//****************************************************//
     printf("===== 506 Personal Information =====\n");
-    printf("\n");
-    printf("\n");
+    printf("Iason Katsaros\n");
+    printf("ikatsar\n");
     printf("ECE492 Students? NO\n");
 	printf("===== 506 SMP Simulator configuration =====\n");
 	//*******print out simulator configuration here*******//
@@ -138,8 +134,6 @@ int main(int argc, char *argv[])
 	uchar rw = ' ';
 	ulong addr = 0;
     Cache *cachePtr;
-    ulong oldState;
-    ulong newState;
 
     while (getline(fin, data_segment)) {
         processor = data_segment.at(0) - '0';
@@ -147,6 +141,12 @@ int main(int argc, char *argv[])
         addr = strtoul(data_segment.substr(4).c_str(), NULL, 16);
 
         cachePtr = processorArray[processor];
+
+        if (protocol == 1) {
+            if (numShares(addr) != 0) {
+                processorArray[processor]->copies = true;
+            };
+        }
 
         if (rw == 'w') {
             cachePtr->prWr(addr);

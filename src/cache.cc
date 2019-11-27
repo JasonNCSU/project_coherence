@@ -29,7 +29,7 @@ Cache::Cache(int s,int a,int b)
     numCacheTransfers = numMemoryTransactions = 0;
     numInterventions = numInvalidaitons = 0;
     numFlushes = numBusRdX = 0;
-    busReads = busReadXs = busRdFlush = false;
+    busReads = busReadXs = busUpgrd = copies = false;
    //*******************//
  
    tagMask =0;
@@ -229,12 +229,11 @@ void Msi::prRd(ulong addr) {
     if (!line) {
         readMisses++;
         cacheLine *newline = fillLine(addr);
-        memTransaction();
         newline->setFlags(S);
         busReads = true;
     } else if (line->getFlags() != I) {
         updateLRU(line);
-    } else if (line->getFlags() == I) { //might have to undo this part
+    } else if (line->getFlags() == I) {
         updateLRU(line);
         line->setFlags(S);
         busReads = true;
@@ -282,10 +281,8 @@ void Msi::busRd(ulong addr) {
         if (state == M) {
             line->setFlags(S);
             numInterventions++;
-            memTransaction();
             flush();
             writeBack(addr);
-            busRdFlush = true;
         }
     }
 }
@@ -309,24 +306,101 @@ void Msi::busRdX(ulong addr) {
 
 //MESI Functions
 void Mesi::prRd(ulong addr) {
+    currentCycle++;
+    reads++;
+    cacheLine *line = findLine(addr);
 
+    if (!line) {
+        readMisses++;
+        cacheLine *newline = fillLine(addr);
+        if (copies) {
+            newline->setFlags(S);
+        } else {
+            newline->setFlags(E);
+        }
+        busReads = true;
+    } else if (line->getFlags() != I) {
+        updateLRU(line);
+    } else if (line->getFlags() == I) {
+        updateLRU(line);
+        if (copies) {
+            line->setFlags(S);
+        } else {
+            line->setFlags(E);
+        }
+        busReads = true;
+    }
 }
 void Mesi::prWr(ulong addr) {
+    currentCycle++;
+    writes++;
+    cacheLine *line = findLine(addr);
 
+    if (!line) {
+        writeMisses++;
+        cacheLine *newline = fillLine(addr);
+        newline->setFlags(M);
+        busReadXs = true;
+    } else if (line->getFlags() == I) {
+        updateLRU(line);
+        writeMisses++;
+        line->setFlags(M);
+        busReadXs = true;
+    } else {
+        updateLRU(line);
+        line->setFlags(M);
+        if (line->getFlags() == S) {
+            busUpgrd = true;
+        }
+    }
+
+    if (busReadXs) {
+        numBusRdX++;
+    }
 }
 void Mesi::busRd(ulong addr) {
+    cacheLine *line = findLine(addr);
+    ulong state;
 
+    if (line) {
+        state = line->getFlags();
+        if (state == M) {
+            line->setFlags(S);
+            numInterventions++;
+            flush();
+            writeBack(addr);
+        } else if (state == E) {
+            line->setFlags(S);
+            numInterventions++;
+            flushOpt();
+            writeBack(addr);
+        }
+    }
 }
 void Mesi::busRdX(ulong addr) {
-
+    cacheLine *line = findLine(addr);
+    ulong state;
+    if (line) {
+        state = line->getFlags();
+        if (state == M) {
+            line->setFlags(I);
+            invalidations();
+            flush();
+            writeBack(addr);
+        } else if (state == E || state == S) {
+            line->setFlags(I);
+            invalidations();
+            flushOpt();
+        }
+    }
 }
 void Mesi::busUpgr(ulong addr) {
 
 }
-void Mesi::flush(ulong addr) {
-
+void Mesi::flush() {
+    numFlushes++;
 }
-void Mesi::flushOpt(ulong addr) {
+void Mesi::flushOpt() {
 
 }
 //MESI Functions

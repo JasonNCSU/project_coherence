@@ -62,7 +62,8 @@ protected:
    
 public:
     ulong currentCycle;
-    bool busReads, busReadXs, busRdFlush;
+    bool busReads, busReadXs, busUpgrd;
+    bool copies;
      
     Cache(int,int,int);
    ~Cache() { delete cache;}
@@ -127,8 +128,8 @@ public:
     void busRd(ulong);
     void busRdX(ulong);
     void busUpgr(ulong);
-    void flush(ulong);
-    void flushOpt(ulong);
+    void flush();
+    void flushOpt();
     //state machine calls
 };
 
