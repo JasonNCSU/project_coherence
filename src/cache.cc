@@ -422,6 +422,7 @@ void Dragon::prRd(ulong addr) {
 
     if (!line) {
         readMisses++;
+        prRdMiss(addr);
         cacheLine *newline = fillLine(addr);
         if (copies) {
             newline->setFlags(S);
@@ -441,13 +442,49 @@ void Dragon::prRd(ulong addr) {
         busReads = true;
     }
 }
-void Dragon::prWr(ulong addr) {
-
+void Dragon::prRdMiss(ulong addr) {
+    cacheLine *newline = fillLine(addr);
+    if (copies) {
+        newline->setFlags(S);
+    } else {
+        newline->setFlags(E);
+    }
 }
-void Dragon::flush() {
+void Dragon::prWr(ulong addr) {
+    currentCycle++;
+    writes++;
+    cacheLine *line = findLine(addr);
+
+    if (!line) {
+        writeMisses++;
+        prWrMiss(addr);
+        cacheLine *newline = fillLine(addr);
+        newline->setFlags(M);
+        busReadXs = true;
+    } else if (line->getFlags() == I) {
+        updateLRU(line);
+        line->setFlags(M);
+        busReadXs = true;
+    } else if (line->getFlags() == S) {
+        updateLRU(line);
+        line->setFlags(M);
+        busUpgrd = true;
+    } else if (line->getFlags() == E) {
+        updateLRU(line);
+        line->setFlags(M);
+    }
+
+    if (busReadXs) {
+        numBusRdX++;
+    }
+}
+void Dragon::prWrMiss(ulong addr) {
 
 }
 void Dragon::busRd(ulong addr) {
+
+}
+void Dragon::flush() {
 
 }
 void Dragon::busUpdate(ulong addr) {

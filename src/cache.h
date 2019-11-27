@@ -85,7 +85,9 @@ public:
    //******///
    //add other functions to handle bus transactions///
    virtual void prRd(ulong) = 0;
+   virtual void prRdMiss(ulong) = 0;
    virtual void prWr(ulong) = 0;
+   virtual void prWrMiss(ulong) = 0;
    virtual void flush() {return;};
    virtual void flushOpt() {return;};
    virtual void invalidations() {return;};
@@ -141,9 +143,11 @@ public:
 
     //state machine calls
     void prRd(ulong);
+    void prRdMiss(ulong);
     void prWr(ulong);
-    void flush();
+    void prWrMiss(ulong);
     void busRd(ulong);
+    void flush();
     void busUpdate(ulong);
     //state machine calls
 };
