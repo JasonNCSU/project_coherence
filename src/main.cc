@@ -156,8 +156,10 @@ int main(int argc, char *argv[])
         if (protocol == 0) {
             if (cachePtr->busReads) {
                 doBusRds(addr, processor);
+                cachePtr->busReads = false;
             } else if (cachePtr->busReadXs) {
                 doBusRdXs(addr, processor);
+                cachePtr->busReadXs = false;
             }
         }
     }
