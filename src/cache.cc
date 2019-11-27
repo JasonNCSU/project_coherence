@@ -262,6 +262,10 @@ void Msi::prWr(ulong addr) {
             busReadXs = true;
         }
     }
+
+    if (busReadXs) {
+        numBusRdX++;
+    }
 }
 void Msi::flush() {
     numFlushes++;
@@ -293,7 +297,6 @@ void Msi::busRdX(ulong addr) {
         if (state == S) {
             line->setFlags(I);
             invalidations();
-            busRdXIncr();
         } else if (state == M) {
             line->setFlags(I);
             invalidations();

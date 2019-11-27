@@ -81,8 +81,6 @@ public:
    void printStats(int processor_num, int protocol);
    void updateLRU(cacheLine *);
 
-    void busRdXIncr()    { numBusRdX++; }
-
    //******///
    //add other functions to handle bus transactions///
    virtual void prRd(ulong) = 0;
