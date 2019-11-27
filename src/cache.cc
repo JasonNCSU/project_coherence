@@ -10,7 +10,7 @@
 #include "cache.h"
 using namespace std;
 
-Cache::Cache(int s,int a,int b )
+Cache::Cache(int s,int a,int b)
 {
    ulong i, j;
    reads = readMisses = writes = 0; 
@@ -195,6 +195,14 @@ void Cache::printStats(int processor_num, int protocol)
         miss_rate = 100 * (double) (readMisses + writeMisses) / (double) (reads + writes);
     }
 
+    if (protocol == 0) {
+        numMemoryTransactions = (readMisses + writeBacks + numBusRdX);
+    } else if (protocol == 1) {
+        numMemoryTransactions = (readMisses + writeBacks + numBusRdX - numCacheTransfers);
+    } else {
+        numMemoryTransactions = (readMisses + writeMisses + writeBacks);
+    }
+
 	cout << "============ Simulation results (Cache " << processor_num << ") ============" << endl;
 	/****print out the rest of statistics here.****/
 	cout << "01. number of reads:				" << reads << endl;
@@ -261,9 +269,6 @@ void Msi::flush() {
 void Msi::invalidations() {
     numInvalidaitons++;
 }
-void Msi::memTransaction() {
-    numMemoryTransactions++;
-}
 void Msi::busRd(ulong addr) {
     cacheLine *line = findLine(addr);
     ulong state;
@@ -272,6 +277,7 @@ void Msi::busRd(ulong addr) {
         state = line->getFlags();
         if (state == M) {
             line->setFlags(S);
+            numInterventions++;
             memTransaction();
             flush();
             writeBack(addr);
@@ -287,15 +293,11 @@ void Msi::busRdX(ulong addr) {
         if (state == S) {
             line->setFlags(I);
             invalidations();
-            memTransaction();
-            numBusRdX++;
         } else if (state == M) {
             line->setFlags(I);
             invalidations();
-            memTransaction();
             flush();
             writeBack(addr);
-            numBusRdX++;
         }
     }
 }
@@ -308,16 +310,19 @@ void Mesi::prRd(ulong addr) {
 void Mesi::prWr(ulong addr) {
 
 }
-void Mesi::flush() {
-
-}
 void Mesi::busRd(ulong addr) {
 
 }
 void Mesi::busRdX(ulong addr) {
 
 }
-void Mesi::busWr(ulong addr) {
+void Mesi::busUpgr(ulong addr) {
+
+}
+void Mesi::flush(ulong addr) {
+
+}
+void Mesi::flushOpt(ulong addr) {
 
 }
 //MESI Functions

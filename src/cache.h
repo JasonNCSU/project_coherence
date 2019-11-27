@@ -21,7 +21,8 @@ enum{
 	S,
 	I,
 	E,
-	O,
+	Sm,
+	Sc
 };
 
 class cacheLine 
@@ -39,8 +40,8 @@ public:
    void setSeq(ulong Seq)			{ seq = Seq;}
    void setFlags(ulong flags)			{  Flags = flags;}
    void setTag(ulong a)   { tag = a; }
-   void invalidate()      { tag = 0; Flags = INVALID; }//useful function
-   bool isValid()         { return ((Flags) != INVALID); }
+   void invalidate()     { tag = 0; Flags = I; }//useful function
+   bool isValid()         { return ((Flags) != I); }
 };
 
 class Cache
@@ -80,11 +81,14 @@ public:
    void printStats(int processor_num, int protocol);
    void updateLRU(cacheLine *);
 
+    void busRdXIncr()    { numBusRdX++; }
+
    //******///
    //add other functions to handle bus transactions///
    virtual void prRd(ulong) = 0;
    virtual void prWr(ulong) = 0;
    virtual void flush() {return;};
+   virtual void flushOpt() {return;};
    virtual void invalidations() {return;};
    virtual void memTransaction() {return;};
    virtual void busRd(ulong) {return;};
@@ -92,6 +96,7 @@ public:
    virtual void busUpdate(ulong) {return;};
    virtual void busRdX(ulong) {return;};
    virtual void busWr(ulong) {return;};
+
    //******///
 
 };
@@ -107,7 +112,6 @@ public:
     void prWr(ulong);
     void flush();
     void invalidations();
-    void memTransaction();
     void busRd(ulong);
     void busRdX(ulong);
     //state machine calls
@@ -122,10 +126,11 @@ public:
     //state machine calls
     void prRd(ulong);
     void prWr(ulong);
-    void flush();
     void busRd(ulong);
     void busRdX(ulong);
-    void busWr(ulong);
+    void busUpgr(ulong);
+    void flush(ulong);
+    void flushOpt(ulong);
     //state machine calls
 };
 

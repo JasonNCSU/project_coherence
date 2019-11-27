@@ -21,7 +21,6 @@ int numShares(ulong addr) {
     }
     return sharers;
 }
-
 void doBusRds(ulong addr, int processor) {
     for (int i = 0; i < num_processors; i++) {
         if (i != processor) {
@@ -33,7 +32,6 @@ void doBusRds(ulong addr, int processor) {
         }
     }
 }
-
 void doBusWrs(ulong addr, int processor) {
     for (int i = 0; i < num_processors; i++) {
         if (i != processor) {
@@ -41,7 +39,6 @@ void doBusWrs(ulong addr, int processor) {
         }
     }
 }
-
 void doBusRdXs(ulong addr, int processor) {
     for (int i = 0; i < num_processors; i++) {
         if (i != processor) {
