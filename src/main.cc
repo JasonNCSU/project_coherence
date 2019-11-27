@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 
         cachePtr = processorArray[processor];
 
-        if (protocol == 1) {
+        if (protocol == 1 || protocol == 2) {
             if (numShares(addr) != 0) {
                 processorArray[processor]->copies = true;
             };

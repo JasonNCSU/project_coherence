@@ -29,7 +29,7 @@ Cache::Cache(int s,int a,int b)
     numCacheTransfers = numMemoryTransactions = 0;
     numInterventions = numInvalid = 0;
     numFlushes = numBusRdX = 0;
-    busReads = busReadXs = busUpgrd = copies = false;
+    busReads = busReadXs = busUpgrd = busUpd = copies = false;
    //*******************//
  
    tagMask =0;
@@ -239,6 +239,7 @@ void Msi::prRd(ulong addr) {
         busReads = true;
     }
 }
+void Msi::prRdMiss(ulong) {}
 void Msi::prWr(ulong addr) {
     currentCycle++;
     writes++;
@@ -266,6 +267,7 @@ void Msi::prWr(ulong addr) {
         numBusRdX++;
     }
 }
+void Msi::prWrMiss(ulong) {}
 void Msi::flush() {
     numFlushes++;
 }
@@ -330,6 +332,7 @@ void Mesi::prRd(ulong addr) {
         busReads = true;
     }
 }
+void Mesi::prRdMiss(ulong) {}
 void Mesi::prWr(ulong addr) {
     currentCycle++;
     writes++;
@@ -357,6 +360,7 @@ void Mesi::prWr(ulong addr) {
         numBusRdX++;
     }
 }
+void Mesi::prWrMiss(ulong) {}
 void Mesi::busRd(ulong addr) {
     cacheLine *line = findLine(addr);
     ulong state;
@@ -423,32 +427,18 @@ void Dragon::prRd(ulong addr) {
     if (!line) {
         readMisses++;
         prRdMiss(addr);
-        cacheLine *newline = fillLine(addr);
-        if (copies) {
-            newline->setFlags(S);
-        } else {
-            newline->setFlags(E);
-        }
-        busReads = true;
-    } else if (line->getFlags() != I) {
+    } else {
         updateLRU(line);
-    } else if (line->getFlags() == I) {
-        updateLRU(line);
-        if (copies) {
-            line->setFlags(S);
-        } else {
-            line->setFlags(E);
-        }
-        busReads = true;
     }
 }
 void Dragon::prRdMiss(ulong addr) {
     cacheLine *newline = fillLine(addr);
     if (copies) {
-        newline->setFlags(S);
+        newline->setFlags(Sc);
     } else {
         newline->setFlags(E);
     }
+    busReads = true;
 }
 void Dragon::prWr(ulong addr) {
     currentCycle++;
@@ -458,28 +448,30 @@ void Dragon::prWr(ulong addr) {
     if (!line) {
         writeMisses++;
         prWrMiss(addr);
-        cacheLine *newline = fillLine(addr);
-        newline->setFlags(M);
-        busReadXs = true;
-    } else if (line->getFlags() == I) {
-        updateLRU(line);
-        line->setFlags(M);
-        busReadXs = true;
-    } else if (line->getFlags() == S) {
-        updateLRU(line);
-        line->setFlags(M);
-        busUpgrd = true;
     } else if (line->getFlags() == E) {
         updateLRU(line);
         line->setFlags(M);
-    }
-
-    if (busReadXs) {
-        numBusRdX++;
+    } else if (line->getFlags() == Sc) {
+        updateLRU(line);
+        line->setFlags(Sm);
+        busUpd = true;
+    } else if (line->getFlags() == Sm) {
+        updateLRU(line);
+        if (!copies) {
+            line->setFlags(M);
+        }
+        busUpd = true;
     }
 }
 void Dragon::prWrMiss(ulong addr) {
-
+    cacheLine *newline = fillLine(addr);
+    if (copies) {
+        newline->setFlags(Sm);
+        busUpgrd = true;
+    } else {
+        newline->setFlags(M);
+    }
+    busReads = true;
 }
 void Dragon::busRd(ulong addr) {
 
