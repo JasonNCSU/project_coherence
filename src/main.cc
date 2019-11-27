@@ -42,6 +42,13 @@ void doBusRdXs(ulong addr, int processor) {
         }
     }
 }
+void doBusUpgrs(ulong addr, int processor) {
+    for (int i = 0; i < num_processors; i++) {
+        if (i != processor) {
+            processorArray[i]->busUpgr(addr);
+        }
+    }
+}
 //Coherence Methods
 
 int main(int argc, char *argv[])
@@ -161,6 +168,9 @@ int main(int argc, char *argv[])
             } else if (cachePtr->busReadXs) {
                 doBusRdXs(addr, processor);
                 cachePtr->busReadXs = false;
+            } else if (cachePtr->busUpgrd) {
+                doBusUpgrs(addr, processor);
+                cachePtr->busUpgrd = false;
             }
         }
     }

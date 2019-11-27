@@ -27,7 +27,7 @@ Cache::Cache(int s,int a,int b)
    //*******************//
    //initialize your counters here//
     numCacheTransfers = numMemoryTransactions = 0;
-    numInterventions = numInvalidaitons = 0;
+    numInterventions = numInvalid = 0;
     numFlushes = numBusRdX = 0;
     busReads = busReadXs = busUpgrd = copies = false;
    //*******************//
@@ -214,7 +214,7 @@ void Cache::printStats(int processor_num, int protocol)
     cout << "07. number of cache-to-cache transfers:		" << numCacheTransfers << endl;
     cout << "08. number of memory transactions:		" << numMemoryTransactions << endl;
     cout << "09. number of interventions:			" << numInterventions << endl;
-    cout << "10. number of invalidations:			" << numInvalidaitons << endl;
+    cout << "10. number of invalidations:			" << numInvalid << endl;
     cout << "11. number of flushes:				"<< numFlushes << endl;
     cout << "12. number of BusRdX:				" << numBusRdX << endl;
     /****follow the ouput file format**************/
@@ -270,7 +270,7 @@ void Msi::flush() {
     numFlushes++;
 }
 void Msi::invalidations() {
-    numInvalidaitons++;
+    numInvalid++;
 }
 void Msi::busRd(ulong addr) {
     cacheLine *line = findLine(addr);
@@ -342,15 +342,15 @@ void Mesi::prWr(ulong addr) {
         busReadXs = true;
     } else if (line->getFlags() == I) {
         updateLRU(line);
-        writeMisses++;
         line->setFlags(M);
         busReadXs = true;
-    } else {
+    } else if (line->getFlags() == S) {
         updateLRU(line);
         line->setFlags(M);
-        if (line->getFlags() == S) {
-            busUpgrd = true;
-        }
+        busUpgrd = true;
+    } else if (line->getFlags() == E) {
+        updateLRU(line);
+        line->setFlags(M);
     }
 
     if (busReadXs) {
@@ -370,8 +370,11 @@ void Mesi::busRd(ulong addr) {
             writeBack(addr);
         } else if (state == E) {
             line->setFlags(S);
+            numInterventions++;
             flushOpt();
-            writeBack(addr);
+        } else if (state == S) {
+            line->setFlags(S);
+            flushOpt();
         }
     }
 }
@@ -382,12 +385,12 @@ void Mesi::busRdX(ulong addr) {
         state = line->getFlags();
         if (state == M) {
             line->setFlags(I);
-            invalidations();
+            numInvalid++;
             flush();
             writeBack(addr);
         } else if (state == E || state == S) {
             line->setFlags(I);
-            invalidations();
+            numInvalid++;
             flushOpt();
         }
     }
@@ -399,7 +402,7 @@ void Mesi::busUpgr(ulong addr) {
         state = line->getFlags();
         if (state == S) {
             line->setFlags(I);
-            invalidations();
+            numInvalid++;
         }
     }
 }
@@ -413,7 +416,30 @@ void Mesi::flushOpt() {
 
 //Dragon Functions
 void Dragon::prRd(ulong addr) {
+    currentCycle++;
+    reads++;
+    cacheLine *line = findLine(addr);
 
+    if (!line) {
+        readMisses++;
+        cacheLine *newline = fillLine(addr);
+        if (copies) {
+            newline->setFlags(S);
+        } else {
+            newline->setFlags(E);
+        }
+        busReads = true;
+    } else if (line->getFlags() != I) {
+        updateLRU(line);
+    } else if (line->getFlags() == I) {
+        updateLRU(line);
+        if (copies) {
+            line->setFlags(S);
+        } else {
+            line->setFlags(E);
+        }
+        busReads = true;
+    }
 }
 void Dragon::prWr(ulong addr) {
 

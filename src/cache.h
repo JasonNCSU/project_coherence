@@ -52,7 +52,7 @@ protected:
 
    //******///
    //add coherence counters here///
-   ulong numCacheTransfers, numMemoryTransactions, numInterventions, numInvalidaitons, numFlushes, numBusRdX;
+   ulong numCacheTransfers, numMemoryTransactions, numInterventions, numInvalid, numFlushes, numBusRdX;
    //******///
 
    cacheLine **cache;
