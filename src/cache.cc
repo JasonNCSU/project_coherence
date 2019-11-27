@@ -284,6 +284,7 @@ void Msi::busRd(ulong addr) {
             line->setFlags(S);
             numInterventions++;
             flush();
+            writeBack(addr);
         }
     }
 }
