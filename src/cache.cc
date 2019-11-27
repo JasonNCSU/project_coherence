@@ -456,8 +456,11 @@ void Dragon::prWr(ulong addr) {
         line->setFlags(M);
     } else if (line->getFlags() == Sc) {
         updateLRU(line);
-        numInterventions++;
-        line->setFlags(Sm);
+        if (copies) {
+            line->setFlags(Sm);
+        } else {
+            line->setFlags(M);
+        }
         busUpd = true;
     } else if (line->getFlags() == Sm) {
         updateLRU(line);
