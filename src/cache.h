@@ -109,7 +109,6 @@ public:
     void invalidations();
     void memTransaction();
     void busRd(ulong);
-    void busUpgr(ulong);
     void busRdX(ulong);
     //state machine calls
 };

@@ -279,9 +279,6 @@ void Msi::busRd(ulong addr) {
         }
     }
 }
-void Msi::busUpgr(ulong addr) {
-
-}
 void Msi::busRdX(ulong addr) {
     cacheLine *line = findLine(addr);
     ulong state;
