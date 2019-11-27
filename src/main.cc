@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
             cachePtr->prRd(addr);
         }
 
-        if (protocol == 0) {
+        if (protocol == 0 || protocol == 1) {
             if (cachePtr->busReads) {
                 doBusRds(addr, processor);
                 cachePtr->busReads = false;

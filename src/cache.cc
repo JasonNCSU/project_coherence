@@ -395,13 +395,21 @@ void Mesi::busRdX(ulong addr) {
     }
 }
 void Mesi::busUpgr(ulong addr) {
-
+    cacheLine *line = findLine(addr);
+    ulong state;
+    if (line) {
+        state = line->getFlags();
+        if (state == S) {
+            line->setFlags(I);
+            invalidations();
+        }
+    }
 }
 void Mesi::flush() {
     numFlushes++;
 }
 void Mesi::flushOpt() {
-
+    numCacheTransfers++;
 }
 //MESI Functions
 
