@@ -293,6 +293,7 @@ void Msi::busRdX(ulong addr) {
         if (state == S) {
             line->setFlags(I);
             invalidations();
+            busRdXIncr();
         } else if (state == M) {
             line->setFlags(I);
             invalidations();
