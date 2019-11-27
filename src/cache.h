@@ -61,7 +61,7 @@ protected:
    
 public:
     ulong currentCycle;
-    bool busReads, busReadXs;
+    bool busReads, busReadXs, busRdFlush;
      
     Cache(int,int,int);
    ~Cache() { delete cache;}

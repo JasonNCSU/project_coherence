@@ -29,7 +29,7 @@ Cache::Cache(int s,int a,int b )
     numCacheTransfers = numMemoryTransactions = 0;
     numInterventions = numInvalidaitons = 0;
     numFlushes = numBusRdX = 0;
-    busReads = busReadXs = false;
+    busReads = busReadXs = busRdFlush = false;
    //*******************//
  
    tagMask =0;
@@ -190,13 +190,6 @@ cacheLine *Cache::fillLine(ulong addr)
 void Cache::printStats(int processor_num, int protocol)
 {
     double miss_rate = 0;
-    if (protocol == 0) {
-        //numMemoryTransactions = readMisses + writeBacks + numBusRdX;
-    } else if (protocol == 1) {
-        //numMemoryTransactions = readMisses + writeBacks + numBusRdX - numCacheTransfers;
-    } else {
-        //numMemoryTransactions = readMisses + writeMisses + writeBacks;
-    }
 
     if (reads != 0 || writes != 0) {
         miss_rate = 100 * (double) (readMisses + writeMisses) / (double) (reads + writes);
@@ -233,6 +226,10 @@ void Msi::prRd(ulong addr) {
         busReads = true;
     } else if (line->getFlags() != I) {
         updateLRU(line);
+    } else if (line->getFlags() == I) { //might have to undo this part
+        updateLRU(line);
+        line->setFlags(S);
+        busReads = true;
     }
 }
 void Msi::prWr(ulong addr) {
@@ -242,23 +239,18 @@ void Msi::prWr(ulong addr) {
 
     if (!line) {
         writeMisses++;
-        memTransaction();
         cacheLine *newline = fillLine(addr);
         newline->setFlags(M);
-        numBusRdX++;
         busReadXs = true;
     } else if (line->getFlags() == I) {
+        updateLRU(line);
         writeMisses++;
-        memTransaction();
-        numBusRdX++;
         line->setFlags(M);
         busReadXs = true;
     } else {
         updateLRU(line);
         if (line->getFlags() == S) {
             line->setFlags(M);
-            memTransaction();
-            numBusRdX++;
             busReadXs = true;
         }
     }
@@ -280,7 +272,10 @@ void Msi::busRd(ulong addr) {
         state = line->getFlags();
         if (state == M) {
             line->setFlags(S);
+            memTransaction();
             flush();
+            writeBack(addr);
+            busRdFlush = true;
         }
     }
 }
@@ -288,7 +283,6 @@ void Msi::busUpgr(ulong addr) {
 
 }
 void Msi::busRdX(ulong addr) {
-    numBusRdX++;
     cacheLine *line = findLine(addr);
     ulong state;
     if (line) {
@@ -296,12 +290,15 @@ void Msi::busRdX(ulong addr) {
         if (state == S) {
             line->setFlags(I);
             invalidations();
-        } else if (state == M) {
-            flush();
-            writeBack(addr);
             memTransaction();
+            numBusRdX++;
+        } else if (state == M) {
             line->setFlags(I);
             invalidations();
+            memTransaction();
+            flush();
+            writeBack(addr);
+            numBusRdX++;
         }
     }
 }
@@ -321,7 +318,7 @@ void Mesi::busRd(ulong addr) {
 
 }
 void Mesi::busRdX(ulong addr) {
-    numBusRdX++;
+
 }
 void Mesi::busWr(ulong addr) {
 

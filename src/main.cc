@@ -27,6 +27,10 @@ void doBusRds(ulong addr, int processor) {
         if (i != processor) {
             processorArray[i]->busRd(addr);
         }
+        if (processorArray[i]->busRdFlush) {
+            processorArray[i]->busRdFlush = false;
+
+        }
     }
 }
 
@@ -70,8 +74,8 @@ int main(int argc, char *argv[])
 	
 	//****************************************************//
     printf("===== 506 Personal Information =====\n");
-    printf("Iason Katsaros\n");
-    printf("ikatsar\n");
+    printf("\n");
+    printf("\n");
     printf("ECE492 Students? NO\n");
 	printf("===== 506 SMP Simulator configuration =====\n");
 	//*******print out simulator configuration here*******//
